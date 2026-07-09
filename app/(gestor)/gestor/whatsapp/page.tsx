@@ -1,13 +1,19 @@
-import { MessageCircle } from "lucide-react";
-import { EmDesenvolvimento } from "@/components/shared/EmDesenvolvimento";
+import { db } from "@/lib/db";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { WhatsappTemplatesTable } from "@/components/gestor/WhatsappTemplatesTable";
+import { WhatsappTemplateFormDialog } from "@/components/gestor/WhatsappTemplateFormDialog";
 
-export default function GestorWhatsappPage() {
+export default async function GestorWhatsappPage() {
+  const templates = await db.whatsappTemplate.findMany({ orderBy: { createdAt: "desc" } });
+
   return (
-    <EmDesenvolvimento
-      titulo="WhatsApp"
-      descricaoPagina="Mensagens e automações via WhatsApp."
-      icon={MessageCircle}
-      descricaoEstado="A integração com a API do WhatsApp ainda não foi configurada. Assim que estiver disponível, o envio e histórico de mensagens aparecerão aqui."
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="WhatsApp"
+        description="Modelos de mensagem para uso manual (copiar e enviar). O envio automático via API do WhatsApp Business ainda não está integrado."
+        actions={<WhatsappTemplateFormDialog />}
+      />
+      <WhatsappTemplatesTable templates={templates} />
+    </div>
   );
 }

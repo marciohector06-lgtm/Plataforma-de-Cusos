@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Users } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/shared/DataTable";
+import { AlunoFormDialog } from "@/components/gestor/AlunoFormDialog";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { formatDate } from "@/lib/utils";
 
@@ -30,6 +31,11 @@ export function AlunosTable({ alunos }: { alunos: Aluno[] }) {
         id: "createdAt",
         header: "Cadastrado em",
         accessorFn: (row) => formatDate(row.createdAt),
+      },
+      {
+        id: "acoes",
+        header: "",
+        cell: ({ row }) => <AlunoFormDialog aluno={row.original} />,
       },
     ],
     []

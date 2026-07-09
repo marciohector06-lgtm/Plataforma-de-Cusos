@@ -1,13 +1,20 @@
-import { ScrollText } from "lucide-react";
-import { EmDesenvolvimento } from "@/components/shared/EmDesenvolvimento";
+import { db } from "@/lib/db";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { LogsTable } from "@/components/gestor/LogsTable";
 
-export default function GestorLogsPage() {
+export default async function GestorLogsPage() {
+  const logs = await db.logAtividade.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
+
   return (
-    <EmDesenvolvimento
-      titulo="Logs"
-      descricaoPagina="Registro de auditoria de ações realizadas na plataforma."
-      icon={ScrollText}
-      descricaoEstado="O registro de auditoria (quem fez o quê e quando) ainda não foi implementado nesta fase do projeto."
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="Logs"
+        description="Registro de auditoria de ações realizadas na plataforma."
+      />
+      <LogsTable logs={logs} />
+    </div>
   );
 }

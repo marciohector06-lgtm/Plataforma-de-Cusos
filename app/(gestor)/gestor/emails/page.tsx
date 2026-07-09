@@ -1,13 +1,19 @@
-import { Mail } from "lucide-react";
-import { EmDesenvolvimento } from "@/components/shared/EmDesenvolvimento";
+import { db } from "@/lib/db";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmailTemplatesTable } from "@/components/gestor/EmailTemplatesTable";
+import { EmailTemplateFormDialog } from "@/components/gestor/EmailTemplateFormDialog";
 
-export default function GestorEmailsPage() {
+export default async function GestorEmailsPage() {
+  const templates = await db.emailTemplate.findMany({ orderBy: { createdAt: "desc" } });
+
   return (
-    <EmDesenvolvimento
-      titulo="E-mails"
-      descricaoPagina="Campanhas e histórico de e-mails transacionais."
-      icon={Mail}
-      descricaoEstado="O envio de e-mails depende de um provedor externo (ex: Resend) que ainda não foi configurado. Assim que a integração for feita, campanhas e histórico aparecerão aqui."
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="E-mails"
+        description="Modelos de e-mail para uso futuro. O envio automático depende de um provedor externo (ex: Resend) que ainda não foi configurado."
+        actions={<EmailTemplateFormDialog />}
+      />
+      <EmailTemplatesTable templates={templates} />
+    </div>
   );
 }

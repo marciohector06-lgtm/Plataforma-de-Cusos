@@ -6,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/shared/ProgressBar";
 import { DataTable } from "@/components/shared/DataTable";
+import { MatriculaFormDialog } from "@/components/gestor/MatriculaFormDialog";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { formatDate, matriculaStatusLabels } from "@/lib/utils";
 
@@ -13,7 +14,15 @@ type Matricula = Prisma.MatriculaGetPayload<{
   include: { aluno: true; turma: { include: { curso: true } } };
 }>;
 
-export function MatriculasTable({ matriculas }: { matriculas: Matricula[] }) {
+export function MatriculasTable({
+  matriculas,
+  alunos,
+  turmas,
+}: {
+  matriculas: Matricula[];
+  alunos: { id: string; name: string }[];
+  turmas: { id: string; nome: string; curso: { titulo: string } }[];
+}) {
   const columns = useMemo<ColumnDef<Matricula>[]>(
     () => [
       {
@@ -54,8 +63,15 @@ export function MatriculasTable({ matriculas }: { matriculas: Matricula[] }) {
         header: "Matriculado em",
         accessorFn: (row) => formatDate(row.createdAt),
       },
+      {
+        id: "acoes",
+        header: "",
+        cell: ({ row }) => (
+          <MatriculaFormDialog matricula={row.original} alunos={alunos} turmas={turmas} />
+        ),
+      },
     ],
-    []
+    [alunos, turmas]
   );
 
   return (

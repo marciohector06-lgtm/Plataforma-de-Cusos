@@ -4,9 +4,10 @@ import { revalidatePath } from "next/cache";
 import { requireRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { planoSchema } from "@/lib/validators";
+import { registrarLog } from "@/lib/actions/log";
 
 export async function criarPlanoAction(input: unknown) {
-  await requireRole(["GESTOR", "ADMIN"]);
+  const session = await requireRole(["GESTOR", "ADMIN"]);
 
   const parsed = planoSchema.safeParse(input);
   if (!parsed.success) {
@@ -16,7 +17,7 @@ export async function criarPlanoAction(input: unknown) {
     };
   }
 
-  await db.plano.create({
+  const plano = await db.plano.create({
     data: {
       nome: parsed.data.nome,
       descricao: parsed.data.descricao,
@@ -26,12 +27,21 @@ export async function criarPlanoAction(input: unknown) {
     },
   });
 
+  await registrarLog(
+    session.user.id,
+    session.user.name ?? session.user.email ?? "Desconhecido",
+    "criou",
+    "Plano",
+    plano.id,
+    plano.nome
+  ).catch(() => {});
+
   revalidatePath("/gestor/planos");
   return { success: true as const };
 }
 
 export async function editarPlanoAction(id: string, input: unknown) {
-  await requireRole(["GESTOR", "ADMIN"]);
+  const session = await requireRole(["GESTOR", "ADMIN"]);
 
   const parsed = planoSchema.safeParse(input);
   if (!parsed.success) {
@@ -41,7 +51,7 @@ export async function editarPlanoAction(id: string, input: unknown) {
     };
   }
 
-  await db.plano.update({
+  const plano = await db.plano.update({
     where: { id },
     data: {
       nome: parsed.data.nome,
@@ -51,6 +61,15 @@ export async function editarPlanoAction(id: string, input: unknown) {
       ativo: parsed.data.ativo,
     },
   });
+
+  await registrarLog(
+    session.user.id,
+    session.user.name ?? session.user.email ?? "Desconhecido",
+    "editou",
+    "Plano",
+    plano.id,
+    plano.nome
+  ).catch(() => {});
 
   revalidatePath("/gestor/planos");
   return { success: true as const };

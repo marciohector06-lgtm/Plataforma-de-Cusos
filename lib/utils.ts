@@ -7,6 +7,7 @@ import type {
   MatriculaStatus,
   PlanoRecorrencia,
   Role,
+  TipoIntegracao,
   TurmaStatus,
   VendaStatus,
 } from "@/lib/generated/prisma/client";
@@ -85,3 +86,14 @@ export const conteudoTipoLabels: Record<ConteudoTipo, string> = {
   TEXTO: "Texto",
   LINK: "Link",
 };
+
+export const tipoIntegracaoLabels: Record<TipoIntegracao, string> = {
+  WEBHOOK: "Webhook",
+  API_KEY: "Chave de API",
+  OUTRO: "Outro",
+};
+
+export function mascarar(valor: string): string {
+  if (valor.length <= 4) return "•".repeat(valor.length);
+  return "•".repeat(valor.length - 4) + valor.slice(-4);
+}

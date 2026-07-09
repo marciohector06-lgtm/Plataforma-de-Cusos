@@ -1,13 +1,27 @@
-import { SlidersHorizontal } from "lucide-react";
-import { EmDesenvolvimento } from "@/components/shared/EmDesenvolvimento";
+import { db } from "@/lib/db";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ParametroForm } from "@/components/gestor/ParametroForm";
 
-export default function GestorParametrosPage() {
+export default async function GestorParametrosPage() {
+  const parametro = await db.parametroSistema.findUnique({
+    where: { id: "singleton" },
+  });
+
   return (
-    <EmDesenvolvimento
-      titulo="Parâmetros"
-      descricaoPagina="Parâmetros técnicos e regras de negócio da plataforma."
-      icon={SlidersHorizontal}
-      descricaoEstado="Os parâmetros de sistema ainda não foram implementados nesta fase do projeto."
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="Parâmetros"
+        description="Regras padrão aplicadas a cursos, turmas e avaliações."
+      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Parâmetros do sistema</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ParametroForm parametro={parametro} />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

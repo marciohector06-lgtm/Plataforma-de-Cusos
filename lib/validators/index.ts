@@ -190,3 +190,95 @@ export const questaoSchema = z.object({
 });
 
 export type QuestaoInput = z.infer<typeof questaoSchema>;
+
+export const criarAlunoSchema = z.object({
+  name: z.string().min(2, "Informe o nome completo"),
+  email: z.string().email("E-mail inválido"),
+  password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres"),
+});
+
+export type CriarAlunoInput = z.infer<typeof criarAlunoSchema>;
+
+export const editarAlunoSchema = z.object({
+  name: z.string().min(2, "Informe o nome completo"),
+  password: z.union([
+    z.literal(""),
+    z.string().min(8, "A senha deve ter no mínimo 8 caracteres"),
+  ]),
+});
+
+export type EditarAlunoInput = z.infer<typeof editarAlunoSchema>;
+
+export const criarMatriculaSchema = z.object({
+  alunoId: z.string().min(1, "Selecione o aluno"),
+  turmaId: z.string().min(1, "Selecione a turma"),
+  status: z.enum(["ATIVA", "CONCLUIDA", "CANCELADA", "TRANCADA"]),
+});
+
+export type CriarMatriculaInput = z.infer<typeof criarMatriculaSchema>;
+
+export const editarMatriculaSchema = z.object({
+  status: z.enum(["ATIVA", "CONCLUIDA", "CANCELADA", "TRANCADA"]),
+  progresso: z.coerce.number().int().min(0, "O progresso mínimo é 0").max(100, "O progresso máximo é 100"),
+});
+
+export type EditarMatriculaInput = z.infer<typeof editarMatriculaSchema>;
+
+export const configuracaoPlataformaSchema = z.object({
+  nomeInstituicao: z.string().min(2, "Informe o nome da instituição"),
+  emailContato: z.string().email("E-mail inválido"),
+  telefoneContato: z.string().optional(),
+  endereco: z.string().optional(),
+});
+
+export type ConfiguracaoPlataformaInput = z.infer<typeof configuracaoPlataformaSchema>;
+
+export const parametroSistemaSchema = z.object({
+  notaMinimaPadrao: z.coerce.number().int().min(0, "Mínimo 0").max(100, "Máximo 100"),
+  diasValidadeCertificado: z.coerce.number().int().min(0, "Mínimo 0"),
+  vagasPadraoTurma: z.coerce.number().int().min(1, "Informe ao menos 1 vaga"),
+});
+
+export type ParametroSistemaInput = z.infer<typeof parametroSistemaSchema>;
+
+export const personalizacaoSchema = z.object({
+  nomeExibicao: z.string().min(2, "Informe o nome de exibição"),
+  logoUrl: z.union([z.literal(""), z.string().url("URL inválida")]),
+  corPrimaria: z.string().min(4, "Informe uma cor válida"),
+  corSecundaria: z.string().min(4, "Informe uma cor válida"),
+});
+
+export type PersonalizacaoInput = z.infer<typeof personalizacaoSchema>;
+
+export const integracaoSchema = z.object({
+  nome: z.string().min(2, "Informe o nome da integração"),
+  tipo: z.enum(["WEBHOOK", "API_KEY", "OUTRO"]),
+  valor: z.string().min(1, "Informe o valor/chave"),
+  ativo: z.boolean(),
+});
+
+export type IntegracaoInput = z.infer<typeof integracaoSchema>;
+
+export const emailTemplateSchema = z.object({
+  nome: z.string().min(2, "Informe o nome do modelo"),
+  assunto: z.string().min(2, "Informe o assunto"),
+  corpo: z.string().min(10, "Descreva o corpo do e-mail"),
+  ativo: z.boolean(),
+});
+
+export type EmailTemplateInput = z.infer<typeof emailTemplateSchema>;
+
+export const whatsappTemplateSchema = z.object({
+  nome: z.string().min(2, "Informe o nome do modelo"),
+  corpo: z.string().min(10, "Descreva o corpo da mensagem"),
+  ativo: z.boolean(),
+});
+
+export type WhatsappTemplateInput = z.infer<typeof whatsappTemplateSchema>;
+
+export const mensagemSchema = z.object({
+  destinatarioId: z.string().min(1, "Selecione o destinatário"),
+  corpo: z.string().min(1, "Escreva uma mensagem"),
+});
+
+export type MensagemInput = z.infer<typeof mensagemSchema>;
