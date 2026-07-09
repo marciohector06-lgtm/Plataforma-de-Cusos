@@ -1,0 +1,330 @@
+// Fonte da verdade dos dados — NÃO invente campos fora deste schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ALUNO
+  INSTRUTOR
+  GESTOR
+  ADMIN
+}
+
+enum CursoStatus {
+  RASCUNHO
+  PUBLICADO
+  ARQUIVADO
+}
+
+enum TurmaStatus {
+  PLANEJADA
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+}
+
+enum MatriculaStatus {
+  ATIVA
+  CONCLUIDA
+  CANCELADA
+  TRANCADA
+}
+
+enum ConteudoTipo {
+  VIDEO
+  PDF
+  TEXTO
+  LINK
+}
+
+enum ContratoStatus {
+  PENDENTE
+  ASSINADO
+  CANCELADO
+}
+
+enum TicketStatus {
+  ABERTO
+  EM_ANDAMENTO
+  RESOLVIDO
+  FECHADO
+}
+
+enum StatusTentativa {
+  ENVIADA
+  CORRIGIDA
+}
+
+enum PlanoRecorrencia {
+  MENSAL
+  TRIMESTRAL
+  ANUAL
+}
+
+enum AssinaturaStatus {
+  ATIVA
+  CANCELADA
+  EXPIRADA
+}
+
+enum VendaStatus {
+  PENDENTE
+  PAGA
+  CANCELADA
+  REEMBOLSADA
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(ALUNO)
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cursosCriados    Curso[]         @relation("CursoAutor")
+  turmasLecionadas Turma[]         @relation("TurmaInstrutor")
+  matriculas       Matricula[]
+  certificados     Certificado[]
+  contratos        Contrato[]
+  notificacoes     Notificacao[]
+  ticketsSuporte   TicketSuporte[]
+  postsBlog        BlogPost[]      @relation("BlogPostAutor")
+  assinaturas      Assinatura[]
+  vendas           Venda[]
+}
+
+model Curso {
+  id           String      @id @default(cuid())
+  titulo       String
+  slug         String      @unique
+  descricao    String
+  cargaHoraria Int
+  status       CursoStatus @default(RASCUNHO)
+  autorId      String
+  autor        User        @relation("CursoAutor", fields: [autorId], references: [id])
+  turmas       Turma[]
+  conteudos    Conteudo[]
+  avaliacoes   Avaliacao[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Turma {
+  id          String      @id @default(cuid())
+  cursoId     String
+  curso       Curso       @relation(fields: [cursoId], references: [id])
+  instrutorId String
+  instrutor   User        @relation("TurmaInstrutor", fields: [instrutorId], references: [id])
+  nome        String
+  dataInicio  DateTime
+  dataFim     DateTime
+  vagas       Int
+  status      TurmaStatus @default(PLANEJADA)
+  matriculas  Matricula[]
+  contratos   Contrato[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Matricula {
+  id          String               @id @default(cuid())
+  alunoId     String
+  aluno       User                 @relation(fields: [alunoId], references: [id])
+  turmaId     String
+  turma       Turma                @relation(fields: [turmaId], references: [id])
+  status      MatriculaStatus      @default(ATIVA)
+  progresso   Int                  @default(0)
+  certificado Certificado?
+  tentativas  TentativaAvaliacao[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@unique([alunoId, turmaId])
+}
+
+model Conteudo {
+  id        String       @id @default(cuid())
+  cursoId   String
+  curso     Curso        @relation(fields: [cursoId], references: [id])
+  titulo    String
+  tipo      ConteudoTipo
+  url       String?
+  corpo     String?
+  ordem     Int
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Certificado {
+  id              String    @id @default(cuid())
+  matriculaId     String    @unique
+  matricula       Matricula @relation(fields: [matriculaId], references: [id])
+  alunoId         String
+  aluno           User      @relation(fields: [alunoId], references: [id])
+  codigoValidacao String    @unique
+  dataEmissao     DateTime  @default(now())
+  urlArquivo      String?
+}
+
+model Contrato {
+  id         String         @id @default(cuid())
+  alunoId    String
+  aluno      User           @relation(fields: [alunoId], references: [id])
+  turmaId    String
+  turma      Turma          @relation(fields: [turmaId], references: [id])
+  status     ContratoStatus @default(PENDENTE)
+  urlArquivo String?
+  assinadoEm DateTime?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+model Notificacao {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  titulo    String
+  mensagem  String
+  lida      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model TicketSuporte {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  assunto   String
+  mensagem  String
+  status    TicketStatus @default(ABERTO)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  titulo      String
+  slug        String    @unique
+  resumo      String
+  corpo       String
+  autorId     String
+  autor       User      @relation("BlogPostAutor", fields: [autorId], references: [id])
+  publicadoEm DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model MensagemContato {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String
+  assunto   String
+  mensagem  String
+  createdAt DateTime @default(now())
+}
+
+model Avaliacao {
+  id         String               @id @default(cuid())
+  cursoId    String
+  curso      Curso                @relation(fields: [cursoId], references: [id])
+  titulo     String
+  notaMinima Int                  @default(60)
+  questoes   Questao[]
+  tentativas TentativaAvaliacao[]
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+}
+
+model Questao {
+  id           String            @id @default(cuid())
+  avaliacaoId  String
+  avaliacao    Avaliacao         @relation(fields: [avaliacaoId], references: [id])
+  enunciado    String
+  ordem        Int
+  alternativas Alternativa[]
+  respostas    RespostaQuestao[]
+}
+
+model Alternativa {
+  id        String            @id @default(cuid())
+  questaoId String
+  questao   Questao           @relation(fields: [questaoId], references: [id])
+  texto     String
+  correta   Boolean           @default(false)
+  ordem     Int
+  respostas RespostaQuestao[]
+}
+
+model TentativaAvaliacao {
+  id          String            @id @default(cuid())
+  matriculaId String
+  matricula   Matricula         @relation(fields: [matriculaId], references: [id])
+  avaliacaoId String
+  avaliacao   Avaliacao         @relation(fields: [avaliacaoId], references: [id])
+  nota        Int?
+  status      StatusTentativa   @default(ENVIADA)
+  respostas   RespostaQuestao[]
+  enviadaEm   DateTime          @default(now())
+  corrigidaEm DateTime?
+
+  @@unique([matriculaId, avaliacaoId])
+}
+
+model RespostaQuestao {
+  id            String             @id @default(cuid())
+  tentativaId   String
+  tentativa     TentativaAvaliacao @relation(fields: [tentativaId], references: [id])
+  questaoId     String
+  questao       Questao            @relation(fields: [questaoId], references: [id])
+  alternativaId String
+  alternativa   Alternativa        @relation(fields: [alternativaId], references: [id])
+
+  @@unique([tentativaId, questaoId])
+}
+
+model Plano {
+  id            String           @id @default(cuid())
+  nome          String
+  descricao     String
+  precoCentavos Int
+  recorrencia   PlanoRecorrencia
+  ativo         Boolean          @default(true)
+  assinaturas   Assinatura[]
+  vendas        Venda[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+model Assinatura {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id])
+  planoId    String
+  plano      Plano            @relation(fields: [planoId], references: [id])
+  status     AssinaturaStatus @default(ATIVA)
+  dataInicio DateTime         @default(now())
+  dataFim    DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model Venda {
+  id            String      @id @default(cuid())
+  compradorId   String
+  comprador     User        @relation(fields: [compradorId], references: [id])
+  planoId       String?
+  plano         Plano?      @relation(fields: [planoId], references: [id])
+  descricao     String
+  valorCentavos Int
+  status        VendaStatus @default(PENDENTE)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
